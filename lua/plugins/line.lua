@@ -1,5 +1,3 @@
----@diagnostic disable: missing-fields
-
 return {
     {
         'rebelot/heirline.nvim',
@@ -9,11 +7,15 @@ return {
 
             local colors = {
                 bg = theme_colors.theme.ui.bg_gutter,
-                bg_secondary = theme_colors.palette.sumiInk1,
+                bg_secondary = theme_colors.palette.sumiInk0,
                 fg = theme_colors.palette.oldWhite,
                 git_add = theme_colors.theme.vcs.added,
                 git_change = theme_colors.theme.vcs.changed,
                 git_remove = theme_colors.theme.vcs.removed,
+                diag_err = theme_colors.theme.diag.error,
+                diag_warn = theme_colors.theme.diag.warning,
+                diag_hint = theme_colors.theme.diag.hint,
+                diag_info = theme_colors.theme.diag.info,
                 normal = theme_colors.palette.springViolet2,
                 visual = theme_colors.palette.oniViolet,
                 insert = theme_colors.palette.autumnGreen,
@@ -99,6 +101,8 @@ return {
                 ['t']     = colors.command,
             }
 
+            local space = { provider = " " }
+
             local mode = {
                 provider = function()
                     return " " .. mode_map[vim.fn.mode()] .. " "
@@ -117,11 +121,11 @@ return {
                 init = function(self)
                     self.status_dict = vim.b.gitsigns_status_dict
 
-                    self.has_changes = self.status_dict.added ~= 0 or self.status_dict.removed ~= 0 or
-                        self.status_dict.changed ~= 0
+                    self.has_changes = (self.status_dict.added or 0) ~= 0 or (self.status_dict.removed or 0) ~= 0 or
+                        (self.status_dict.changed or 0) ~= 0
                 end,
                 {
-                    provider = "  "
+                    provider = "  "
                 },
                 {
                     provider = function(self)
@@ -129,6 +133,9 @@ return {
                     end,
                 },
                 {
+                    condition = function(self)
+                        return self.has_changes
+                    end,
                     provider = " "
                 },
                 {
@@ -152,12 +159,98 @@ return {
                     end,
                     hl = { fg = colors.git_change },
                 },
-                {
-                    provider = " "
-                }
+                space
             }
 
-            vim.api.nvim_set_hl(0, 'StatusLine', { bg = colors.bg_secondary, fg = colors.fg })
+            local file_icon = {
+                init = function(self)
+                    local file_name = vim.fn.expand('%:t')
+                    local extension = vim.fn.fnamemodify(file_name, ":e")
+
+                    self.icon, self.icon_color =
+                        require("nvim-web-devicons").get_icon_color(file_name, extension, { default = true })
+                end,
+                provider = function(self)
+                    return self.icon and self.icon .. " "
+                end,
+                hl = function(self)
+                    return { fg = self.icon_color }
+                end
+            }
+
+            local file_flags = {
+                {
+                    condition = function()
+                        return vim.bo.modified
+                    end,
+                    provider = " ",
+                    hl = { fg = colors.fg },
+                },
+                {
+                    condition = function()
+                        return not vim.bo.modifiable or vim.bo.readonly
+                    end,
+                    provider = "  ",
+                    hl = { fg = colors.command },
+                },
+            }
+
+            local file_preview = {
+                space,
+                file_icon,
+                {
+                    provider = function()
+                        return vim.fn.expand('%:t')
+                    end,
+                },
+                file_flags,
+                space
+            }
+
+            local diagnostics = {
+                condition = conditions.has_diagnostics,
+
+                static = {
+                    error_icon = '',
+                    warn_icon = '',
+                    info_icon = '󰋇',
+                    hint_icon = '󰌵',
+                },
+
+                init = function(self)
+                    self.errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
+                    self.warnings = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })
+                    self.hints = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.HINT })
+                    self.info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
+                end,
+
+                update = { "DiagnosticChanged", "BufEnter" },
+
+                {
+                    provider = function(self)
+                        return self.errors > 0 and (self.error_icon .. " " .. self.errors .. " ")
+                    end,
+                    hl = { fg = colors.diag_err },
+                },
+                {
+                    provider = function(self)
+                        return self.warnings > 0 and (self.warn_icon .. " " .. self.warnings .. " ")
+                    end,
+                    hl = { fg = colors.diag_warn },
+                },
+                {
+                    provider = function(self)
+                        return self.info > 0 and (self.info_icon .. " " .. self.info .. " ")
+                    end,
+                    hl = { fg = colors.diag_info },
+                },
+                {
+                    provider = function(self)
+                        return self.hints > 0 and (self.hint_icon .. " " .. self.hints)
+                    end,
+                    hl = { fg = colors.diag_hint },
+                }
+            }
 
             require('heirline').setup({
                 statusline = {
@@ -173,9 +266,15 @@ return {
                             hl = function()
                                 return { fg = mode_color_map[vim.fn.mode()], bg = colors.bg }
                             end
-                        }
-                    },
-                    fallthrough = false,
+                        },
+                        {
+                            file_preview,
+                            diagnostics,
+                            hl = { fg = colors.fg, bg = colors.bg_secondary }
+                        },
+                        { provider = "%=" },
+                        hl = { bg = colors.fg }
+                    }
                 }
             })
         end
