@@ -18,9 +18,9 @@ return {
                 diag_warn = theme_colors.theme.diag.warning,
                 diag_hint = theme_colors.theme.diag.hint,
                 diag_info = theme_colors.theme.diag.info,
-                normal = theme_colors.palette.springViolet2,
-                visual = theme_colors.palette.oniViolet,
-                insert = theme_colors.palette.autumnGreen,
+                normal = theme_colors.palette.crystalBlue,
+                visual = theme_colors.palette.sakuraPink,
+                insert = theme_colors.palette.springGreen,
                 replace = theme_colors.palette.autumnRed,
                 command = theme_colors.palette.autumnYellow,
             }
@@ -200,7 +200,8 @@ return {
             local file_preview = {
                 {
                     provider = function()
-                        return vim.fn.expand('%:t')
+                        local title = vim.fn.expand('%:t')
+                        return title ~= '' and title or '[no file]'
                     end,
                 },
                 file_flags,
@@ -268,6 +269,9 @@ return {
                         return vim.bo.filetype
                     end
                 },
+                condition = function()
+                    return vim.bo.filetype ~= ''
+                end,
             }
 
             require('heirline').setup({
