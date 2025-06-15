@@ -1,3 +1,5 @@
+---@diagnostic disable: missing-fields
+
 return {
     {
         'rebelot/heirline.nvim',
@@ -7,7 +9,7 @@ return {
 
             local colors = {
                 bg = theme_colors.theme.ui.bg_gutter,
-                bg_secondary = theme_colors.palette.sumiInk0,
+                bg_secondary = theme_colors.theme.ui.bg_dim,
                 fg = theme_colors.palette.oldWhite,
                 git_add = theme_colors.theme.vcs.added,
                 git_change = theme_colors.theme.vcs.changed,
@@ -196,8 +198,6 @@ return {
             }
 
             local file_preview = {
-                space,
-                file_icon,
                 {
                     provider = function()
                         return vim.fn.expand('%:t')
@@ -252,6 +252,24 @@ return {
                 }
             }
 
+            local position = {
+                provider = ' %l:%c '
+            }
+
+            local percentage = {
+                provider = ' %p%% '
+            }
+
+            local file_type = {
+                space,
+                file_icon,
+                {
+                    provider = function()
+                        return vim.bo.filetype
+                    end
+                },
+            }
+
             require('heirline').setup({
                 statusline = {
                     {
@@ -268,12 +286,30 @@ return {
                             end
                         },
                         {
+                            space,
                             file_preview,
                             diagnostics,
-                            hl = { fg = colors.fg, bg = colors.bg_secondary }
+                            hl = { fg = colors.fg }
                         },
                         { provider = "%=" },
-                        hl = { bg = colors.fg }
+                        {
+                            file_type,
+                            space,
+                            hl = { fg = colors.fg }
+                        },
+                        {
+                            percentage,
+                            hl = function()
+                                return { fg = mode_color_map[vim.fn.mode()], bg = colors.bg }
+                            end
+                        },
+                        {
+                            position,
+                            hl = function()
+                                return { bg = mode_color_map[vim.fn.mode()], fg = colors.bg }
+                            end
+                        },
+                        hl = { bg = colors.bg_secondary }
                     }
                 }
             })
