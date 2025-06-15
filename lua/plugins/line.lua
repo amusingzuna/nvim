@@ -9,7 +9,7 @@ return {
 
             local colors = {
                 bg = theme_colors.theme.ui.bg_gutter,
-                bg_secondary = theme_colors.theme.ui.bg_dim,
+                bg_secondary = theme_colors.palette.dragonBlack1,
                 fg = theme_colors.palette.oldWhite,
                 git_add = theme_colors.theme.vcs.added,
                 git_change = theme_colors.theme.vcs.changed,
@@ -18,11 +18,16 @@ return {
                 diag_warn = theme_colors.theme.diag.warning,
                 diag_hint = theme_colors.theme.diag.hint,
                 diag_info = theme_colors.theme.diag.info,
-                normal = theme_colors.palette.crystalBlue,
-                visual = theme_colors.palette.sakuraPink,
-                insert = theme_colors.palette.springGreen,
-                replace = theme_colors.palette.autumnRed,
-                command = theme_colors.palette.autumnYellow,
+                normal = theme_colors.palette.springViolet2,
+                -- normal = theme_colors.palette.crystalBlue,
+                visual = theme_colors.palette.oniViolet,
+                -- visual = theme_colors.palette.sakuraPink,
+                insert = theme_colors.palette.autumnGreen,
+                -- insert = theme_colors.palette.springGreen,
+                replace = theme_colors.palette.waveRed,
+                -- replace = theme_colors.palette.autumnRed,
+                command = theme_colors.palette.boatYellow2,
+                -- command = theme_colors.palette.autumnYellow,
             }
 
             local mode_map = {
